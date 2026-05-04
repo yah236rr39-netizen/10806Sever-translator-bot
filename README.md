@@ -1,8 +1,7 @@
 ---
 title: 10806SeverTranslatorBot
-emoji: 🇹🇼
 colorFrom: blue
-colorTo: black
+colorTo: yellow
 sdk: docker
 pinned: false
 ---
