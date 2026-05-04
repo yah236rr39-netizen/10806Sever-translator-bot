@@ -6,8 +6,8 @@ ENV UV_THREADPOOL_SIZE=64
 
 WORKDIR /app
 
-# 確保抓到最新版，舊版真的會有 10秒 超時 Bug
-RUN npm install discord.js@14.14.1 google-translate-api-x@latest
+# 修正：加上 undici，確保 main.js 頂端的全域設定不會噴「找不到模組」
+RUN npm install discord.js@14.14.1 google-translate-api-x@latest undici
 
 COPY . .
 
