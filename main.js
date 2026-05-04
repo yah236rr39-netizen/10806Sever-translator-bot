@@ -13,8 +13,9 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMembers, // 你有用到這個，一定要看下面的提醒！
   ],
+  rest: { timeout: 60000 } // 👈 兄弟，加上這行救命草！
 });
 
 // 1. 這裡改成精確的 9 個頻道 ID (把簡繁合併成一個 zh 頻道)
