@@ -2,12 +2,13 @@ const http = require('http');
 const { Client, GatewayIntentBits } = require('discord.js');
 const { translate } = require('google-translate-api-x');
 
-// 維持 Hugging Face 運作
+// 1. 維持 Hugging Face 運作 (不要動這段)
 http.createServer((req, res) => {
   res.write('SUn 9-Channel Translator is Online!');
   res.end();
 }).listen(process.env.PORT || 7860);
 
+// 2. 機器人核心設定
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -15,14 +16,14 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
   ],
-  // 👈 強制拉長連線等待時間，專治 ConnectTimeoutError
+  // 👈 強制設定：讓底層連線更厚臉皮
   rest: { 
     timeout: 60000,
     connectTimeout: 60000 
   } 
 });
 
-// 1. 頻道 ID 設定
+// 3. 頻道與語言配置 (保持你的設定)
 const channels = {
   zh: '1500878218318708818',
   en: '1500878218318708819',
@@ -35,7 +36,6 @@ const channels = {
   pt: '1500880147073728692'
 };
 
-// 2. 翻譯目標語言設定
 const langConfig = {
   zh: { lang: 'zh-TW', emoji: '🇹🇼' },
   en: { lang: 'en',    emoji: '🇺🇸' },
@@ -72,10 +72,8 @@ client.on('ready', () => {
 
 client.on('messageCreate', async (msg) => {
   if (msg.author.bot || !msg.content) return;
-
   const sourceKey = Object.keys(channels).find(key => channels[key] === msg.channel.id);
   if (!sourceKey) return;
-
   const targets = Object.keys(channels).filter(key => key !== sourceKey);
   const senderName = msg.member ? msg.member.displayName : msg.author.username;
 
@@ -94,14 +92,13 @@ client.on('messageCreate', async (msg) => {
   }));
 });
 
-// 3. 死纏爛打登入邏輯 (放在最下面)
+// 4. 終極重連邏輯
 async function loginWithRetry() {
   try {
-    console.log('🚀 正在嘗試連線至 Discord...');
+    console.log('🚀 嘗試連線至 Discord...');
     await client.login(process.env.DISCORD_TOKEN);
   } catch (err) {
-    console.error('❌ 連線失敗，原因：', err.message);
-    console.log('🔄 5 秒後自動發起重新連線...');
+    console.error('❌ 連線失敗:', err.message);
     setTimeout(loginWithRetry, 5000);
   }
 }
