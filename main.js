@@ -1,25 +1,23 @@
 const { setGlobalDispatcher, Agent } = require('undici');
 
-// 🚀 強制全域連線器：這會覆蓋所有底層 10 秒的限制
+// 🛡️ 第一步：暴力破解 10 秒限制 (必須放在最頂端)
 setGlobalDispatcher(new Agent({
   connect: {
-    timeout: 60000 // 強制改為 60 秒
+    timeout: 60000 // 強制改為 60 秒，給伺服器足夠的時間敲門
   }
 }));
-//
-const http = require('http');
-// ...後面接妳原本的代碼
+
 const http = require('http');
 const { Client, GatewayIntentBits } = require('discord.js');
 const { translate } = require('google-translate-api-x');
 
-// 1. 維持運作
+// 1. 維持 Hugging Face 運作，防止被踢下線
 http.createServer((req, res) => {
   res.write('SUn 9-Channel Translator is Online!');
   res.end();
 }).listen(process.env.PORT || 7860);
 
-// 2. 核心設定：直接暴力覆蓋底層連線時限
+// 2. 機器人核心設定
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -28,12 +26,12 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
   ],
   rest: {
-    timeout: 300000, // 拉到 5 分鐘
-    retries: 10     // 失敗自動重試 10 次
+    timeout: 300000, 
+    retries: 10
   }
 });
 
-// 3. 頻道與翻譯配置 (保持原樣)
+// 3. 頻道 ID 與 翻譯配置
 const channels = {
   zh: '1500878218318708818',
   en: '1500878218318708819',
@@ -95,11 +93,11 @@ client.on('messageCreate', async (msg) => {
 // 4. 死纏爛打登入邏輯
 async function loginWithRetry() {
   try {
-    console.log('🚀 嘗試連線至 Discord (已解除 10秒 限制)...');
+    console.log('🚀 嘗試連線至 Discord (已解除全域 10秒 限制)...');
     await client.login(process.env.DISCORD_TOKEN);
   } catch (err) {
     console.error('❌ 連線失敗:', err.message);
-    console.log('🔄 8 秒後重試...');
+    console.log('🔄 8 秒後重新發起重連...');
     setTimeout(loginWithRetry, 8000);
   }
 }
