@@ -13,14 +13,18 @@ const client = new Client({
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers, // 你有用到這個，一定要看下面的提醒！
+    GatewayIntentBits.GuildMembers,
   ],
-  rest: { timeout: 60000 } // 👈 兄弟，加上這行救命草！
+  // 👈 強制拉長連線等待時間，專治 ConnectTimeoutError
+  rest: { 
+    timeout: 60000,
+    connectTimeout: 60000 
+  } 
 });
 
-// 1. 這裡改成精確的 9 個頻道 ID (把簡繁合併成一個 zh 頻道)
+// 1. 頻道 ID 設定
 const channels = {
-  zh: '1500878218318708818', // 這裡放你預計給華語用戶使用的頻道
+  zh: '1500878218318708818',
   en: '1500878218318708819',
   fr: '1500878564096999615',
   de: '1500879372369006706',
@@ -33,7 +37,7 @@ const channels = {
 
 // 2. 翻譯目標語言設定
 const langConfig = {
-  zh: { lang: 'zh-TW', emoji: '🇹🇼' }, // 預設翻成繁體，Google 能自動識別輸入的是簡是繁
+  zh: { lang: 'zh-TW', emoji: '🇹🇼' },
   en: { lang: 'en',    emoji: '🇺🇸' },
   fr: { lang: 'fr',    emoji: '🇫🇷' },
   de: { lang: 'de',    emoji: '🇩🇪' },
@@ -69,15 +73,12 @@ client.on('ready', () => {
 client.on('messageCreate', async (msg) => {
   if (msg.author.bot || !msg.content) return;
 
-  // 偵測發言頻道
   const sourceKey = Object.keys(channels).find(key => channels[key] === msg.channel.id);
   if (!sourceKey) return;
 
-  // 過濾掉發言頻道，剩下的就是目標
   const targets = Object.keys(channels).filter(key => key !== sourceKey);
   const senderName = msg.member ? msg.member.displayName : msg.author.username;
 
-  // 同時發起 8 個翻譯請求
   await Promise.all(targets.map(async (langKey) => {
     const translation = await translateText(msg.content, langConfig[langKey].lang);
     if (translation) {
@@ -93,4 +94,16 @@ client.on('messageCreate', async (msg) => {
   }));
 });
 
-client.login(process.env.DISCORD_TOKEN);
+// 3. 死纏爛打登入邏輯 (放在最下面)
+async function loginWithRetry() {
+  try {
+    console.log('🚀 正在嘗試連線至 Discord...');
+    await client.login(process.env.DISCORD_TOKEN);
+  } catch (err) {
+    console.error('❌ 連線失敗，原因：', err.message);
+    console.log('🔄 5 秒後自動發起重新連線...');
+    setTimeout(loginWithRetry, 5000);
+  }
+}
+
+loginWithRetry();
