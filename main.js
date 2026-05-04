@@ -2,13 +2,13 @@ const http = require('http');
 const { Client, GatewayIntentBits } = require('discord.js');
 const { translate } = require('google-translate-api-x');
 
-// 1. 維持 Hugging Face 運作 (不要動這段)
+// 1. 維持運作
 http.createServer((req, res) => {
   res.write('SUn 9-Channel Translator is Online!');
   res.end();
 }).listen(process.env.PORT || 7860);
 
-// 2. 機器人核心設定
+// 2. 核心設定：直接暴力覆蓋底層連線時限
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -16,14 +16,13 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
   ],
-  // 👈 強制設定：讓底層連線更厚臉皮
-  rest: { 
-    timeout: 60000,
-    connectTimeout: 60000 
-  } 
+  rest: {
+    timeout: 300000, // 拉到 5 分鐘
+    retries: 10     // 失敗自動重試 10 次
+  }
 });
 
-// 3. 頻道與語言配置 (保持你的設定)
+// 3. 頻道與翻譯配置 (保持原樣)
 const channels = {
   zh: '1500878218318708818',
   en: '1500878218318708819',
@@ -50,15 +49,7 @@ const langConfig = {
 
 async function translateText(text, target) {
   try {
-    const res = await translate(text, { 
-      to: target, 
-      autoCorrect: true,
-      fetchOptions: {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-      }
-    });
+    const res = await translate(text, { to: target });
     return res.text;
   } catch (e) {
     console.error(`❌ [${target}] 失敗:`, e.message);
@@ -84,22 +75,21 @@ client.on('messageCreate', async (msg) => {
       if (targetChannel) {
         try {
           await targetChannel.send(`${langConfig[sourceKey].emoji} **${senderName}**: ${translation}`);
-        } catch (err) {
-          console.error('發送失敗:', err.message);
-        }
+        } catch (err) { console.error('發送失敗:', err.message); }
       }
     }
   }));
 });
 
-// 4. 終極重連邏輯
+// 4. 死纏爛打登入邏輯
 async function loginWithRetry() {
   try {
-    console.log('🚀 嘗試連線至 Discord...');
+    console.log('🚀 嘗試連線至 Discord (已解除 10秒 限制)...');
     await client.login(process.env.DISCORD_TOKEN);
   } catch (err) {
     console.error('❌ 連線失敗:', err.message);
-    setTimeout(loginWithRetry, 5000);
+    console.log('🔄 8 秒後重試...');
+    setTimeout(loginWithRetry, 8000);
   }
 }
 
