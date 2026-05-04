@@ -1,0 +1,9 @@
+{
+  "name": "sun-9-channel-bot",
+  "version": "1.0.0",
+  "main": "main.js",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "google-translate-api-x": "latest"
+  }
+}
