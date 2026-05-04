@@ -1,6 +1,7 @@
 ---
 title: 10806SeverTranslatorBot
+emoji: 🤖
 colorFrom: blue
-colorTo: yellow
+colorTo: gray
 sdk: docker
 ---
