@@ -15,7 +15,7 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: $
-          {{ secrets.HF_TOKEN }}
+{{ secrets.HF_TOKEN }}
         run: |
           git push --force
-          https://yah236rr39-netizen:$HF_TOKEN@huggingface.co/spaces/Newt10806/10806SeverTranslatorBot main
+https://yah236rr39-netizen:$HF_TOKEN@huggingface.co/spaces/Newt10806/10806SeverTranslatorBot main
