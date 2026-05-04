@@ -1,3 +1,14 @@
+const { setGlobalDispatcher, Agent } = require('undici');
+
+// 🚀 強制全域連線器：這會覆蓋所有底層 10 秒的限制
+setGlobalDispatcher(new Agent({
+  connect: {
+    timeout: 60000 // 強制改為 60 秒
+  }
+}));
+
+const http = require('http');
+// ...後面接妳原本的代碼
 const http = require('http');
 const { Client, GatewayIntentBits } = require('discord.js');
 const { translate } = require('google-translate-api-x');
