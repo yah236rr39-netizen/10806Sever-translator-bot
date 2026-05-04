@@ -1,6 +1,6 @@
-FROM node:20
+FROM node:20-slim
 
-# 增加這一行，強迫 Node.js 優先使用 IPv4
+# 下面這行是剛才提到的，強迫走 IPv4，避免 IPv6 繞路繞到超時
 ENV NODE_OPTIONS="--dns-result-order=ipv4first"
 
 WORKDIR /app
